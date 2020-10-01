@@ -1,7 +1,13 @@
 Lets you manage mono repos a little better by letting you run commands in parallel while managing the dependencies of those packages.
 
-<img src="docs/video.gif" />
+<img width="400px" src="docs/video.gif" />
 <br>
+
+Install:
+```
+npm install @alshdavid/npm-package-runner
+yarn add @alshdavid/npm-package-runner
+```
 
 Commands:
 
