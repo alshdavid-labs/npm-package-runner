@@ -1,28 +1,3 @@
-# NPM Package Runner
-
-Lets you manage mono repos a little better by letting you run commands in parallel while managing the dependencies of those packages.
-
-<img width="550px" src="docs/video.gif" />
-<br>
-
-Install:
-```
-npm install @alshdavid/npm-package-runner
-yarn add @alshdavid/npm-package-runner
-```
-
-Commands:
-
-```
-npx npr
-npx npm [npm script name]
-```
-
-Config file:
-
-```javascript
-// packages.config.js
-
 const { Package, Options, Command } = require('@alshdavid/npm-package-runner')
 
 const __packages = [__dirname, 'packages']
@@ -113,5 +88,4 @@ module.exports = {
     },
   ]
 }
-```
 

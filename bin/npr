@@ -10,15 +10,26 @@ if (yargs.argv.c || yargs.argv.config) {
 }
 const config = require(configPath)
 
+if (!config.commands) {
+  config.commands = {}
+}
+if (!config.packages) {
+  config.packages = []
+}
+if (!config.defaultActions) {
+  config.defaultActions = []
+}
+
 void async function main() {
   console.clear()
 
   if (yargs.argv._.length !== 0) {
     const scripts = yargs.argv._
+    console.time('Task');
     for (const script of scripts) {
-      console.log(script)
-      await runScript(config.packages, script)
+      await runScript(config.packages, config.commands[script] || script)
     }
+    console.timeEnd('Task');
     process.exit()
   }
 
@@ -26,10 +37,11 @@ void async function main() {
     { 
       type: 'list', 
       name: 'default-action', 
-      message: 'Please select an action', 
+      message: 'Please select an action',
+      pageSize: 100,
       choices: [
         ...config.defaultActions.map(action => ({ name: action.name, value: action })),
-        { name: ' ', value: '[[manual-selection]]' },
+        new inquirer.Separator(),
         { name: 'Manual Selection', value: '[[manual-selection]]' },
       ]
     }
@@ -37,13 +49,19 @@ void async function main() {
 
   console.clear()
   if (result['default-action'] !== '[[manual-selection]]') {
-    const options = {}
-    if (result['default-action'].options?.includes(Options.NoPrefix)) {
-      options.prefix = 'none'
+    const { commands, packages, options = [] } = result['default-action']
+    console.time('Task');
+    for (const script of commands) {
+      await runScript(
+        selectPackages(
+          (packages && packages.map(p => p.name)) || config.packages.map(p => p.name), 
+          !options.includes(Options.Shallow),
+        ), 
+        script, 
+        options,
+      )
     }
-    for (const script of result['default-action'].commands) {
-      await runScript(config.packages, script, options)
-    }
+    console.timeEnd('Task');
     process.exit(0)
   }
 
@@ -53,7 +71,19 @@ void async function main() {
         type: 'checkbox', 
         name: 'selected-packages', 
         message: 'What packages do you want to run?', 
+        pageSize: 100,
         choices: config.packages.map(pkg => ({ name: pkg.name }))
+      },
+      {
+        type: 'checkbox', 
+        name: 'options', 
+        message: 'What options?', 
+        pageSize: 100,
+        choices: [
+          { name: 'Run on dependencies (deep)', value: 'deep', checked: true },
+          { name: 'Exit all on failure', value: Options.KillOthersOnFailure, checked: true },
+          { name: 'Exit all on success', value: Options.KillOthersOnSuccess, checked: true },
+        ]
       },
       {
         type: 'input',
@@ -62,16 +92,25 @@ void async function main() {
       }
     ])
 
+    // console.log(yargs.argv['deep'], yargs.argv['deep'] === 'false', yargs.argv['deep'] !== 'false')
+
+  const selected = selectPackages(
+    manualResult['selected-packages'], 
+    yargs.argv['deep'] !== 'false'
+  )
+
+  console.time('Task');
   for (const script of manualResult['run-scripts'].split(' ')) {
-    await runScript(selectPackages(manualResult['selected-packages']), script)
+    await runScript(selected, script)
   }
+  console.timeEnd('Task');
 }()
 
 
-const selectPackages = (pkgArr) => {
+const selectPackages = (pkgArr, deep = true) => {
   const getDependencies = (pkg, pkgs = {}) => {
     pkgs[pkg.name] = pkg
-    for (const dep of pkg.dependsOn) {
+    for (const dep of pkg.dependsOn || []) {
       pkgs[dep.name] = dep
       getDependencies(dep, pkgs)
     }
@@ -82,7 +121,13 @@ const selectPackages = (pkgArr) => {
   
   pkgArr
     .map(pkgName => config.packages.find(pkg => pkg.name === pkgName))
-    .forEach(pkg => getDependencies(pkg, selectedPackages))
+    .forEach(pkg => {
+      if (deep) {
+        getDependencies(pkg, selectedPackages)
+      } else {
+        selectedPackages[pkg.name] = pkg
+      }
+    })
 
   return Object.values(selectedPackages)
 }
