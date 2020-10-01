@@ -1,6 +1,6 @@
 Lets you manage mono repos a little better by letting you run commands in parallel while managing the dependencies of those packages.
 
-<img width="400px" src="docs/video.gif" />
+<img width="550px" src="docs/video.gif" />
 <br>
 
 Install:
