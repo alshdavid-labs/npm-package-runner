@@ -1,8 +1,8 @@
 {
   "name": "@alshdavid/npm-package-runner",
-  "version": "1.0.5",
+  "version": "2.0.0",
   "bin": {
-    "npr": "./bin/npr"
+    "npmake": "./bin/npmake"
   },
   "description": "",
   "main": "index.js",

@@ -3,6 +3,7 @@ const Options = {
   KillOthersOnSuccess: 'KillOthersOnSuccess',
   NoPrefix: 'NoPrefix',
   SkipWait: 'SkipWait',
+  SequenceOnProcessExit: 'SequenceOnProcessExit',
   Shallow: 'Shallow',
 }
 

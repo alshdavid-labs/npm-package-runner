@@ -14,8 +14,8 @@ yarn add @alshdavid/npm-package-runner
 Commands:
 
 ```
-npx npr
-npx npm [npm script name]
+npx npmake
+npx npmake [npm script name]
 ```
 
 Config file:

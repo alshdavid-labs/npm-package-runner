@@ -26,9 +26,22 @@ const runScript = async (packages, script, options = []) => {
     _concurrentlyOptions.killOthers = [ ...(_concurrentlyOptions.killOthers || []), 'success']
   }
   
+  if (_options.includes(Options.SequenceOnProcessExit)) {
+    for (const pkg of packages) {
+      if (!pkg.scripts || !pkg.scripts[_task]) {
+        continue
+      }
+      await concurrently([{
+        name: `${pkg.alias || pkg.name}:${_task}`,
+        command: `cd "${pkg.workingDir}" && ${pkg.scripts[_task]}`
+      }], _concurrentlyOptions)
+    }
+    return
+  }
+  
   const commands = []
   for (const pkg of packages) {
-    if (!pkg.scripts[_task]) {
+    if (!pkg.scripts || !pkg.scripts[_task]) {
       continue
     }
 
